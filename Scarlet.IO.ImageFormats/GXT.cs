@@ -96,7 +96,7 @@ namespace Scarlet.IO.ImageFormats
 
             if (textureType == SceGxmTextureType.Linear &&
                 textureBaseFormat != SceGxmTextureBaseFormat.UBC1 && textureBaseFormat != SceGxmTextureBaseFormat.UBC2 && textureBaseFormat != SceGxmTextureBaseFormat.UBC3 &&
-                textureBaseFormat != SceGxmTextureBaseFormat.PVRT2BPP && textureBaseFormat != SceGxmTextureBaseFormat.PVRT4BPP &&
+                textureBaseFormat != SceGxmTextureBaseFormat.SBC5 && textureBaseFormat != SceGxmTextureBaseFormat.PVRT2BPP && textureBaseFormat != SceGxmTextureBaseFormat.PVRT4BPP &&
                 textureBaseFormat != SceGxmTextureBaseFormat.PVRTII2BPP && textureBaseFormat != SceGxmTextureBaseFormat.PVRTII4BPP)
             {
                 imageBinary.PhysicalWidth = (int)(((info.DataSize / imageBinary.Height) * 8) / PSVita.GetBitsPerPixel(textureBaseFormat));
@@ -123,14 +123,12 @@ namespace Scarlet.IO.ImageFormats
 
                     case SceGxmTextureType.Swizzled:
                     case SceGxmTextureType.Cube:
-                        // TODO: is cube really the same as swizzled? seems that way from CS' *env* files...
+                    case SceGxmTextureType.SwizzledArbitrary:
+                    case SceGxmTextureType.CubeArbitrary:
+
                         imageBinary.InputPixelFormat |= PixelDataFormat.PixelOrderingSwizzledVita;
                         break;
 
-                    case (SceGxmTextureType)0xA0000000:
-                        // TODO: this is odd and needs investigation, found ex. in Odin Sphere, Puyo Puyo Tetris, ...
-                        imageBinary.InputPixelFormat |= PixelDataFormat.PixelOrderingSwizzledVita;
-                        break;
                 }
             }
 
