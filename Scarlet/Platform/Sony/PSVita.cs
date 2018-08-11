@@ -51,6 +51,7 @@ namespace Scarlet.Platform.Sony
         UBC1 = 0x85000000,
         UBC2 = 0x86000000,
         UBC3 = 0x87000000,
+        SBC5 = 0x8B000000,
         YUV420P2 = 0x90000000,
         YUV420P3 = 0x91000000,
         YUV422 = 0x92000000,
@@ -331,6 +332,12 @@ namespace Scarlet.Platform.Sony
         UBC1_ABGR = SceGxmTextureBaseFormat.UBC1 | SceGxmTextureSwizzle4Mode.ABGR,
         UBC2_ABGR = SceGxmTextureBaseFormat.UBC2 | SceGxmTextureSwizzle4Mode.ABGR,
         UBC3_ABGR = SceGxmTextureBaseFormat.UBC3 | SceGxmTextureSwizzle4Mode.ABGR,
+        SBC5_GR = SceGxmTextureBaseFormat.SBC5 | SceGxmTextureSwizzle2Mode.GR,
+        SBC5_00GR = SceGxmTextureBaseFormat.SBC5 | SceGxmTextureSwizzle2Mode._00GR,
+        SBC5_GRRR = SceGxmTextureBaseFormat.SBC5 | SceGxmTextureSwizzle2Mode.GRRR,
+        SBC5_RGGG = SceGxmTextureBaseFormat.SBC5 | SceGxmTextureSwizzle2Mode.RGGG,
+        SBC5_GRGR = SceGxmTextureBaseFormat.SBC5 | SceGxmTextureSwizzle2Mode.GRGR,
+        SBC5_00RG = SceGxmTextureBaseFormat.SBC5 | SceGxmTextureSwizzle2Mode._00RG,
         YUV420P2_CSC0 = SceGxmTextureBaseFormat.YUV420P2 | SceGxmTextureSwizzleYUV420Mode.YUV_CSC0,
         YVU420P2_CSC0 = SceGxmTextureBaseFormat.YUV420P2 | SceGxmTextureSwizzleYUV420Mode.YVU_CSC0,
         YUV420P2_CSC1 = SceGxmTextureBaseFormat.YUV420P2 | SceGxmTextureSwizzleYUV420Mode.YUV_CSC1,
@@ -419,7 +426,9 @@ namespace Scarlet.Platform.Sony
         Cube = 0x40000000,
         Linear = 0x60000000,
         Tiled = 0x80000000,
-        LinearStrided = 0xC0000000
+        SwizzledArbitrary = 0xA0000000,
+        LinearStrided = 0xC0000000,
+        CubeArbitrary = 0xE0000000
     };
 
     public class SceGxtHeader
@@ -585,6 +594,12 @@ namespace Scarlet.Platform.Sony
             /* DXT1     */ { SceGxmTextureFormat.UBC1_ABGR, PixelDataFormat.FormatDXT1Rgb },
             /* DXT3     */ { SceGxmTextureFormat.UBC2_ABGR, PixelDataFormat.FormatDXT3 },
             /* DXT5     */ { SceGxmTextureFormat.UBC3_ABGR, PixelDataFormat.FormatDXT5 },
+            /*          */ { SceGxmTextureFormat.SBC5_00GR, PixelDataFormat.FormatRGTC2_Signed },
+            /*          */ { SceGxmTextureFormat.SBC5_00RG, PixelDataFormat.FormatRGTC2_Signed },
+            /* SBC5     */ { SceGxmTextureFormat.SBC5_GR, PixelDataFormat.FormatRGTC2_Signed },
+            /*          */ { SceGxmTextureFormat.SBC5_GRGR, PixelDataFormat.FormatRGTC2_Signed },
+            /*          */ { SceGxmTextureFormat.SBC5_GRRR, PixelDataFormat.FormatRGTC2_Signed },
+            /*          */ { SceGxmTextureFormat.SBC5_RGGG, PixelDataFormat.FormatRGTC2_Signed },
             /* PVRT2    */ { SceGxmTextureFormat.PVRT2BPP_ABGR, PixelDataFormat.FormatPVRT2_Vita },
             // PVRT2    */ { SceGxmTextureFormat.PVRT2BPP_1BGR, PixelDataFormat.Undefined },
             /* PVRT4    */ { SceGxmTextureFormat.PVRT4BPP_ABGR, PixelDataFormat.FormatPVRT4_Vita },
