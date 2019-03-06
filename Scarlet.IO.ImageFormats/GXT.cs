@@ -96,6 +96,7 @@ namespace Scarlet.IO.ImageFormats
 
             if (textureType == SceGxmTextureType.Linear &&
                 textureBaseFormat != SceGxmTextureBaseFormat.UBC1 && textureBaseFormat != SceGxmTextureBaseFormat.UBC2 && textureBaseFormat != SceGxmTextureBaseFormat.UBC3 &&
+                textureBaseFormat != SceGxmTextureBaseFormat.UBC4 && textureBaseFormat != SceGxmTextureBaseFormat.SBC4 && textureBaseFormat != SceGxmTextureBaseFormat.UBC5 &&
                 textureBaseFormat != SceGxmTextureBaseFormat.SBC5 && textureBaseFormat != SceGxmTextureBaseFormat.PVRT2BPP && textureBaseFormat != SceGxmTextureBaseFormat.PVRT4BPP &&
                 textureBaseFormat != SceGxmTextureBaseFormat.PVRTII2BPP && textureBaseFormat != SceGxmTextureBaseFormat.PVRTII4BPP)
             {
