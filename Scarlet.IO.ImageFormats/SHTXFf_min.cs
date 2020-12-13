@@ -8,15 +8,14 @@ using System.Drawing;
 using Scarlet.Drawing;
 using Scarlet.IO;
 
-
 namespace Scarlet.IO.ImageFormats
 {
-    [MagicNumber("SHTXFS", 0x00)]
-    public class SHTXFS : ImageFormat
+    [MagicNumber("SHTXFf", 0x00)]
+    public class SHTXFf : ImageFormat
     {
         public string Tag { get; private set; }
         public ushort Width { get; private set; }
-        public ushort Height { get; private set; }
+        public int Height { get; private set; }
         public byte Unknown0x0A { get; private set; }
         public byte Unknown0x0B { get; private set; }
 
@@ -31,29 +30,31 @@ namespace Scarlet.IO.ImageFormats
         {
             Tag = Encoding.ASCII.GetString(reader.ReadBytes(6));
             Width = reader.ReadUInt16();
-            Height = reader.ReadUInt16();
+            Height = ((int)reader.BaseStream.Length - 6) / Width / 4;
+            reader.ReadUInt16();
             Unknown0x0A = reader.ReadByte();
             Unknown0x0B = reader.ReadByte();
 
-            PaletteData = reader.ReadBytes(256 * 4);
-            PixelData = reader.ReadBytes(Width * Height);
+            PaletteData = null;
+            PixelData = reader.ReadBytes((int)reader.BaseStream.Length);
+
 
             /* Initialize ImageBinary */
             imageBinary = new ImageBinary();
             imageBinary.Width = Width;
             imageBinary.Height = Height;
+            imageBinary.InputEndianness = Endian.LittleEndian;
 
             if (PCAE == false)
             {
+                imageBinary.InputPixelFormat = PixelDataFormat.FormatAbgr8888;
                 imageBinary.InputPaletteFormat = PixelDataFormat.FormatAbgr8888;
             }
             else
             {
+                imageBinary.InputPixelFormat = PixelDataFormat.FormatArgb8888;
                 imageBinary.InputPaletteFormat = PixelDataFormat.FormatArgb8888;
             }
-
-            imageBinary.InputPixelFormat = PixelDataFormat.FormatIndexed8;
-            imageBinary.InputEndianness = Endian.LittleEndian;
 
             imageBinary.AddInputPalette(PaletteData);
             imageBinary.AddInputPixels(PixelData);
@@ -66,7 +67,7 @@ namespace Scarlet.IO.ImageFormats
 
         public override int GetPaletteCount()
         {
-            return 1;
+            return 0;
         }
 
         protected override Bitmap OnGetBitmap(int imageIndex, int paletteIndex)

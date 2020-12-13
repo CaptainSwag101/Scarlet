@@ -28,6 +28,7 @@ namespace ScarletTestApp
         static int indent = 0;
         static bool keepFiles = false;
         static DirectoryInfo globalOutputDir = null;
+        static string NewName = null;
 
         static void Main(string[] args)
         {
@@ -45,23 +46,14 @@ namespace ScarletTestApp
                 var copyright = (assembly.GetCustomAttributes(typeof(AssemblyCopyrightAttribute), false).FirstOrDefault() as AssemblyCopyrightAttribute).Copyright;
                 var informational = (assembly.GetCustomAttributes(typeof(AssemblyInformationalVersionAttribute), false).FirstOrDefault() as AssemblyInformationalVersionAttribute).InformationalVersion;
 
-                IndentWriteLine("{0} v{1}.{2} ({3})", name, version.Major, version.Minor, informational);
-                IndentWriteLine("{0}", description);
-                IndentWriteLine("{0}", copyright);
-                IndentWriteLine();
-                IndentWriteLine("Scarlet library information:");
-                indent++;
-
                 foreach (AssemblyName referencedAssembly in Assembly.GetExecutingAssembly().GetReferencedAssemblies().Where(x => x.Name.StartsWith("Scarlet")).OrderBy(x => x.Name))
                 {
                     var loadedAssembly = Assembly.Load(referencedAssembly.Name);
                     var assemblyInformational = (loadedAssembly.GetCustomAttributes(typeof(AssemblyInformationalVersionAttribute), false).FirstOrDefault() as AssemblyInformationalVersionAttribute).InformationalVersion;
-                    IndentWriteLine("{0} v{1} ({2})", referencedAssembly.Name, referencedAssembly.Version, assemblyInformational);
                 }
-                indent--;
-                IndentWriteLine();
 
                 args = CommandLineTools.CreateArgs(Environment.CommandLine);
+                //args = new string[] { "", "C:\\Users\\Acer\\Desktop\\bg_komaroom_obj01.btx", "--output", "C:\\Users\\Acer\\Desktop\\ff", "--PCAE" };
 
                 if (args.Length < 2)
                     throw new CommandLineArgsException("<input ...> [--keep | --output <directory>]");
@@ -75,7 +67,6 @@ namespace ScarletTestApp
                     if (directory.Exists)
                     {
                         IEnumerable<FileInfo> files = directory.EnumerateFiles("*", SearchOption.AllDirectories).Where(x => x.Extension != ".png");
-                        IndentWriteLine("Adding directory '{0}', {1} file{2} found...", directory.Name, files.Count(), (files.Count() != 1 ? "s" : string.Empty));
                         inputDirs.Add(directory);
                         continue;
                     }
@@ -83,7 +74,6 @@ namespace ScarletTestApp
                     FileInfo file = new FileInfo(args[i]);
                     if (file.Exists)
                     {
-                        IndentWriteLine("Adding file '{0}'...", file.Name);
                         inputFiles.Add(file);
                         continue;
                     }
@@ -102,24 +92,27 @@ namespace ScarletTestApp
                                 globalOutputDir = new DirectoryInfo(args[++i]);
                                 break;
 
+                            case "n":
+                            case "nameoutput":
+                                NewName = args[++i];
+                                break;
+
+                            case "PCAE":
+                                SHTXFS.PCAE = SHTXFF.PCAE = true;
+                                break;
+
                             default:
                                 IndentWriteLine("Unknown argument '{0}'.", args[i]);
                                 break;
                         }
                         continue;
                     }
-
-                    IndentWriteLine("File or directory '{0}' not found.", args[i]);
                 }
 
                 if (inputDirs.Count > 0)
                 {
                     foreach (DirectoryInfo inputDir in inputDirs)
                     {
-                        IndentWriteLine();
-                        IndentWriteLine("Parsing directory '{0}'...", inputDir.Name);
-                        indent++;
-
                         DirectoryInfo outputDir = (globalOutputDir != null ? globalOutputDir : new DirectoryInfo(inputDir.FullName + " " + defaultOutputDir));
                         foreach (FileInfo inputFile in inputDir.EnumerateFiles("*", SearchOption.AllDirectories).Where(x => x.Extension != ".png" && !IsSubdirectory(x.Directory, outputDir)))
                             ProcessInputFile(inputFile, inputDir, outputDir);
@@ -130,10 +123,6 @@ namespace ScarletTestApp
 
                 if (inputFiles.Count > 0)
                 {
-                    IndentWriteLine();
-                    IndentWriteLine("Parsing files...");
-                    indent++;
-
                     foreach (FileInfo inputFile in inputFiles)
                     {
                         DirectoryInfo outputDir = (globalOutputDir != null ? globalOutputDir : inputFile.Directory);
@@ -156,38 +145,32 @@ namespace ScarletTestApp
                 stopwatch.Stop();
 
                 indent = 0;
-
-                IndentWriteLine();
-                IndentWriteLine("Operation completed in {0}.", GetReadableTimespan(stopwatch.Elapsed));
-                IndentWriteLine();
-                IndentWriteLine("Press any key to exit.");
-                Console.ReadKey();
             }
         }
 
         private static void ProcessInputFile(FileInfo inputFile, DirectoryInfo inputDir, DirectoryInfo outputDir)
         {
+            string FinalOutputName = null;
+
             try
             {
                 string displayPath = inputFile.FullName.Replace(inputDir.FullName, string.Empty).TrimStart(directorySeparators);
-                IndentWrite("File '{0}'... ", displayPath);
-                indent++;
 
                 string relativeDirectory = inputFile.DirectoryName.TrimEnd(directorySeparators).Replace(inputDir.FullName.TrimEnd(directorySeparators), string.Empty).TrimStart(directorySeparators);
 
                 if (keepFiles)
                 {
                     string existenceCheckPath = Path.Combine(outputDir.FullName, relativeDirectory);
-                    string existenceCheckPattern = Path.GetFileNameWithoutExtension(inputFile.Name) + "*";
+                    string existenceCheckPattern = inputFile.Name + "*";
                     if (Directory.Exists(existenceCheckPath) && Directory.EnumerateFiles(existenceCheckPath, existenceCheckPattern).Any())
                     {
-                        Console.WriteLine("already exists.");
                         return;
                     }
                 }
 
                 using (FileStream inputStream = new FileStream(inputFile.FullName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
                 {
+
                     var instance = FileFormat.FromFile<FileFormat>(inputStream);
                     if (instance != null)
                     {
@@ -203,31 +186,82 @@ namespace ScarletTestApp
                             contentStrings.Add(string.Format("{0} image{1}", imageCount, (imageCount != 1 ? "s" : string.Empty)));
                             if (paletteCount > 0) contentStrings.Add(string.Format("{0} palette{1}", paletteCount, (paletteCount != 1 ? "s" : string.Empty)));
                             if (blockCount > 0) contentStrings.Add(string.Format("{0} block{1}", blockCount, (blockCount != 1 ? "s" : string.Empty)));
-                            Console.WriteLine(string.Format("{0} found.", string.Join(", ", contentStrings)));
 
                             for (int i = 0; i < imageCount; i++)
                             {
                                 string imageName = imageInstance.GetImageName(i);
 
                                 string outputFilename;
+                                string NewFileName = null;
                                 FileInfo outputFile;
 
                                 if (paletteCount < 2)
                                 {
                                     Bitmap image = imageInstance.GetBitmap(i, 0);
-                                    if (imageName == null)
+
+                                    if (NewName != null)
                                     {
-                                        outputFilename = string.Format("{0} (Image {1}).png", Path.GetFileNameWithoutExtension(inputFile.Name), i);
+                                        NewFileName = NewName + ".png";
+                                        outputFile = new FileInfo(Path.Combine(outputDir.FullName, relativeDirectory, NewFileName));
+                                    }
+                                    else if (imageName == null)
+                                    {
+                                        NewFileName = Path.GetFileName(inputFile.Name).Substring(0, Path.GetFileName(inputFile.Name).IndexOf("."));
+
+                                        if (inputFile.Name.Contains(".gx3dec"))
+                                            NewFileName += ".gx3dec";
+                                        else if (inputFile.Name.Contains(".dec"))
+                                            NewFileName += ".dec";
+
+                                        if (imageInstance is GXT)
+                                            NewFileName += ".gxt";
+                                        else if (imageInstance is SHTXFS)
+                                            NewFileName += ".SHTXFS.btx";
+                                        else if (imageInstance is SHTX)
+                                            NewFileName += ".SHTX.btx";
+                                        else if (imageInstance is SHTXFF)
+                                            NewFileName += ".SHTXFF.btx";
+                                        else if (imageInstance is SHTXFs)
+                                            NewFileName += ".SHTXFs.btx";
+                                        else if (imageInstance is DDS)
+                                            NewFileName += ".dds";
+
+                                        if (Path.GetExtension(NewFileName) != Path.GetExtension(inputFile.Name))
+                                            NewFileName += Path.GetExtension(inputFile.Name);
+
+                                        outputFilename = string.Format("{0}.png", NewFileName, i);
                                         outputFile = new FileInfo(Path.Combine(outputDir.FullName, relativeDirectory, outputFilename));
                                     }
                                     else
                                     {
-                                        outputFilename = string.Format("{0}.png", Path.GetFileNameWithoutExtension(imageName));
-                                        outputFile = new FileInfo(Path.Combine(outputDir.FullName, relativeDirectory, Path.GetFileNameWithoutExtension(inputFile.Name), outputFilename));
+                                        NewFileName = Path.GetFileName(inputFile.Name).Substring(0, Path.GetFileName(inputFile.Name).IndexOf("."));
+
+                                        if (inputFile.Name.Contains(".gx3dec"))
+                                            NewFileName += ".gx3dec";
+                                        else if (inputFile.Name.Contains(".dec"))
+                                            NewFileName += ".dec";
+
+                                        if (imageInstance is GXT)
+                                            NewFileName += ".gxt";
+                                        else if (imageInstance is SHTXFS)
+                                            NewFileName += ".SHTXFS.btx";
+                                        else if (imageInstance is SHTX)
+                                            NewFileName += ".SHTX.btx";
+                                        else if (imageInstance is SHTXFF)
+                                            NewFileName += ".SHTXFF.btx";
+                                        else if (imageInstance is SHTXFs)
+                                            NewFileName += ".SHTXFs.btx";
+
+                                        if (Path.GetExtension(NewFileName) != Path.GetExtension(inputFile.Name))
+                                            NewFileName += Path.GetExtension(inputFile.Name);
+
+                                        outputFilename = string.Format("{0}.png", NewFileName);
+                                        outputFile = new FileInfo(Path.Combine(outputDir.FullName, relativeDirectory, inputFile.Name, outputFilename));
                                     }
 
                                     Directory.CreateDirectory(outputFile.Directory.FullName);
                                     image.Save(outputFile.FullName, System.Drawing.Imaging.ImageFormat.Png);
+                                    FinalOutputName = outputFile.FullName;
                                 }
                                 else
                                 {
@@ -235,19 +269,25 @@ namespace ScarletTestApp
                                     {
                                         Bitmap image = imageInstance.GetBitmap(i, p);
 
-                                        if (imageName == null)
+                                        if (NewName != null)
                                         {
-                                            outputFilename = string.Format("{0} (Image {1}, Palette {2}).png", Path.GetFileNameWithoutExtension(inputFile.Name), i, p);
+                                            NewFileName = NewName + ".png";
+                                            outputFile = new FileInfo(Path.Combine(outputDir.FullName, relativeDirectory, NewFileName));
+                                        }
+                                        else if (imageName == null)
+                                        {
+                                            outputFilename = string.Format("{0}.png", inputFile.Name, i, p);
                                             outputFile = new FileInfo(Path.Combine(outputDir.FullName, relativeDirectory, outputFilename));
                                         }
                                         else
                                         {
-                                            outputFilename = string.Format("{0} (Palette {1}).png", Path.GetFileNameWithoutExtension(imageName), p);
-                                            outputFile = new FileInfo(Path.Combine(outputDir.FullName, relativeDirectory, Path.GetFileNameWithoutExtension(inputFile.Name), outputFilename));
+                                            outputFilename = string.Format("{0}.png", imageName, p);
+                                            outputFile = new FileInfo(Path.Combine(outputDir.FullName, relativeDirectory, inputFile.Name, outputFilename));
                                         }
 
                                         Directory.CreateDirectory(outputFile.Directory.FullName);
                                         image.Save(outputFile.FullName, System.Drawing.Imaging.ImageFormat.Png);
+                                        FinalOutputName = outputFile.FullName;
                                     }
                                 }
                             }
@@ -260,7 +300,7 @@ namespace ScarletTestApp
                                 for (int b = 0; b < buvImages.Count; b++)
                                 {
                                     Bitmap image = buvImages[b];
-                                    string outputFilename = string.Format("{0} (Block {1}).png", Path.GetFileNameWithoutExtension(inputFile.Name), b);
+                                    string outputFilename = string.Format("{0}.png", inputFile.Name, b);
                                     FileInfo outputFile = new FileInfo(Path.Combine(outputDir.FullName, relativeDirectory, outputFilename));
 
                                     Directory.CreateDirectory(outputFile.Directory.FullName);
@@ -273,12 +313,11 @@ namespace ScarletTestApp
                             var containerInstance = (instance as ContainerFormat);
 
                             int elementCount = containerInstance.GetElementCount();
-                            Console.WriteLine("{0} element{1} found.", elementCount, (elementCount != 1 ? "s" : string.Empty));
 
                             foreach (var element in containerInstance.GetElements(inputStream))
                             {
                                 string outputFilename = element.GetName();
-                                FileInfo outputFile = new FileInfo(Path.Combine(outputDir.FullName, relativeDirectory, Path.GetFileNameWithoutExtension(inputFile.Name), outputFilename));
+                                FileInfo outputFile = new FileInfo(Path.Combine(outputDir.FullName, relativeDirectory, inputFile.Name, outputFilename));
 
                                 Directory.CreateDirectory(outputFile.Directory.FullName);
                                 using (FileStream outputStream = new FileStream(outputFile.FullName, FileMode.Create, FileAccess.Write, FileShare.ReadWrite))
@@ -296,15 +335,13 @@ namespace ScarletTestApp
                         {
                             var compressedInstance = (instance as CompressionFormat);
 
-                            Console.WriteLine("decompressed {0}.", compressedInstance.GetType().Name);
-
                             // TODO: less naive way of determining target filename; see also CompressionFormat class in Scarlet.IO.CompressionFormats
                             string outputFilename;
                             string nameOrExtension = compressedInstance.GetNameOrExtension();
                             if (nameOrExtension != string.Empty)
                             {
                                 bool isFullName = nameOrExtension.Contains('.');
-                                outputFilename = (isFullName ? nameOrExtension : Path.GetFileNameWithoutExtension(inputFile.Name) + "." + nameOrExtension).TrimEnd('.');
+                                outputFilename = (isFullName ? nameOrExtension : inputFile.Name + "." + nameOrExtension).TrimEnd('.');
                             }
                             else
                                 outputFilename = Path.GetFileName(inputFile.Name);
@@ -321,6 +358,12 @@ namespace ScarletTestApp
 
                             // TODO: make nicer?
                             ProcessInputFile(outputFile, outputFile.Directory, outputFile.Directory);
+
+                            if (File.Exists(outputFile.FullName))
+                            {
+                                File.Delete(outputFile.FullName);
+                                while (File.Exists(outputFile.FullName)) { }
+                            }
                         }
                         else
                             Console.WriteLine("unhandled file.");
@@ -337,7 +380,7 @@ namespace ScarletTestApp
 #endif
             finally
             {
-                indent--;
+                Console.WriteLine(FinalOutputName);
             }
         }
 
@@ -348,7 +391,7 @@ namespace ScarletTestApp
 
         private static void IndentWriteLine(string format = "", params object[] param)
         {
-            Console.WriteLine(format.Insert(0, new string(' ', indent)), param);
+
         }
 
         /* Slightly modified from https://stackoverflow.com/a/4423615 */
