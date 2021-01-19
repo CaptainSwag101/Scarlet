@@ -12,7 +12,7 @@ namespace Scarlet.IO.ImageFormats
 {
     // TODO: finish me!
 
-    [MagicNumber("DDS ", 0x00)]
+    [MagicNumber("DDS1", 0x00)]
     public class DDS : ImageFormat
     {
         internal string MagicNumber { get; private set; }
@@ -192,6 +192,7 @@ namespace Scarlet.IO.ImageFormats
 
         public DDSHeader(EndianBinaryReader reader)
         {
+        	reader.ReadUInt32(Endian.LittleEndian);
             Size = reader.ReadUInt32(Endian.LittleEndian);
             Flags = (DDSD)reader.ReadUInt32(Endian.LittleEndian);
             Height = reader.ReadUInt32(Endian.LittleEndian);

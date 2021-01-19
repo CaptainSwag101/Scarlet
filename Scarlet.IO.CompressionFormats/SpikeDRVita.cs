@@ -25,23 +25,42 @@ namespace Scarlet.IO.CompressionFormats
         public uint UncompressedSize { get; private set; }
         public uint CompressedSize { get; private set; }
 
-        string extension;
+        string NewFileName;
         byte[] decompressed;
 
         protected override void OnOpen(EndianBinaryReader reader)
         {
+            string name = Path.GetFileName((reader.BaseStream as FileStream).Name).Substring(0, Path.GetFileName((reader.BaseStream as FileStream).Name).IndexOf(".")),
+                ext = Path.GetFileName((reader.BaseStream as FileStream).Name).Substring(Path.GetFileName((reader.BaseStream as FileStream).Name).IndexOf("."), Path.GetFileName((reader.BaseStream as FileStream).Name).Length - Path.GetFileName((reader.BaseStream as FileStream).Name).IndexOf(".")),
+                compressiontype = ".dec";
+
             MagicNumber = reader.ReadUInt32();
-            if (MagicNumber == 0x00335847) MagicNumber = reader.ReadUInt32();   /* "double-compressed" GX3; correct FCAA55A7 magic follows afterwards, so just read magic twice */
+            if (MagicNumber == 0x00335847) MagicNumber = reader.ReadUInt32(); /* "double-compressed" GX3; correct FCAA55A7 magic follows afterwards, so just read magic twice */
             UncompressedSize = reader.ReadUInt32();
             CompressedSize = reader.ReadUInt32();
 
             decompressed = Decompress(reader.ReadBytes((int)CompressedSize - 0x0C));
 
+            //"double-compressed" GX3
+            if (decompressed[0] == 0x47 && decompressed[1] == 0x58 && decompressed[2] == 0x33 && decompressed[3] == 0x0)
+            {
+                UncompressedSize = BitConverter.ToUInt32(new byte[] { decompressed[8], decompressed[9], decompressed[10], decompressed[11] }, 0);
+                CompressedSize = BitConverter.ToUInt32(new byte[] { decompressed[12], decompressed[13], decompressed[14], decompressed[15] }, 0);
+
+                Array.Copy(decompressed, 0xF, decompressed, 0, decompressed.Length - 0xF);
+                Array.Resize(ref decompressed, decompressed.Length - 0xF);
+                decompressed = Decompress(decompressed);
+                compressiontype = ".gx3dec";
+            }
+
             /* Hacky file naming thingy; could be better, but eh... */
             if (reader.BaseStream is FileStream)
-                extension = Path.GetFileName((reader.BaseStream as FileStream).Name).TrimStart('.') + ".dec";
+                if (ext.Contains(".cmp") || ext.Contains(".gx3"))
+                    NewFileName = Path.GetFileName((reader.BaseStream as FileStream).Name).Replace(".gx3", ".gx3dec").Replace(".cmp", ".dec");
+                else
+                    NewFileName = name + compressiontype + ext;
             else
-                extension = "bin";
+                NewFileName = "bin";
         }
 
         public override Stream GetDecompressedStream()
@@ -51,7 +70,7 @@ namespace Scarlet.IO.CompressionFormats
 
         public override string GetNameOrExtension()
         {
-            return extension;
+            return NewFileName;
         }
 
         private byte[] Decompress(byte[] compressed)
