@@ -1,19 +1,19 @@
-Changes have been made to make Scarlet compatible with DRAT (https://github.com/Liquid-S/Danganronpa-Another-Tool)
-
 Scarlet
 =======
-__Scarlet__ and its related libraries are aiming to provide functionality to convert, export and import various types of game data. They are written in C# and based on the .NET Framework.
+__Scarlet__ and its related libraries are aiming to provide functionality to convert, export and import various types of game data. They are written in C# and based on .NET Standard and .NET (Core).
 
 Disclaimer
 ==========
-This project is still incomplete and work-in-progress. Functionality will change, be added or removed, and all interfaces, calling conventions, etc. should be considered subject to change.
+This project is still incomplete and work-in-progress. Functionality will change, be added or removed, and all interfaces, calling conventions, etc. should be considered subject to change. It has also been upgraded by me (CaptainSwag101/jpmac26) to the newer .NET Standard platform, which may cause unforseen bugs but also hopefully provide better performance and long-term support into the future.
+
+I (CaptainSwag101/jpmac26) maintain this fork of Scarlet purely for my own purposes, and I do not offer any kind of support. I have gathered together various changes from other people's forks in the hopes that this may be the ideal branch of Scarlet for others to use, but my own knowledge of its inner workings means I cannot fix arbitrary issues without serious investigation. Therefore, your use of this fork is at your own risk.
 
 Requirements
 ============
 * General
-  * [.NET Framework 4](http://www.microsoft.com/en-US/download/details.aspx?id=17718)
+  * [.NET 6.0 SDK](https://dotnet.microsoft.com/download/dotnet/6.0)
 * Compilation
-  * Visual Studio Community 2013 (or higher)
+  * Visual Studio Community 2022 (or higher)
 
 Parts
 =====
@@ -69,18 +69,6 @@ File formats that can be loaded and exported/extracted by the libraries as of [t
 
 Note that support for these is not 100% complete (especially Capcom TEX is lacking), as well as the unintentional bias towards NIS games.
 
-Usage
-=====
-Sample Converter
-----------------
-Syntax: `ScarletTestApp.exe <inputs ...> [options]`
-* `<inputs ...>`: Any number of files or directories to be converted, separated by spaces
-* `[options]`:
-  * `--output | -o`: Specify output directory
-  * `--keep | -k`: Do not overwrite existing output files
-
-Example: `ScarletTestApp.exe "C:\Temp\files\" "C:\Temp\testfile.gxt" "C:\Temp\testfile2.nmt" --output "C:\Temp\output\"`
-
 Acknowledgements
 ================
 * PVRTC texture decompression code ported from [PowerVR Graphics Native SDK](https://github.com/powervr-graphics/Native_SDK), Copyright (c) Imagination Technologies Ltd.
@@ -92,3 +80,7 @@ Acknowledgements
 * Texture swizzle logic reverse-engineering and original C implementation by [FireyFly](https://github.com/FireyFly)
 * ZAR v1 and GAR v2 container support adapted from documentation and/or code by Twili and [ShimmerFairy](https://github.com/ShimmerFairy) respectively
 * Sample files, testing and moral support by [Ehm](https://twitter.com/OtherEhm)
+* Support for Danganronpa: Another Episode texture formats by [Liquid-S](https://github.com/Liquid-S)
+* Support for UBC4, SBC4, and UBC5 variants of GTX by [Cri4Key](https://github.com/Cri4Key)
+* Fixes for DXT's TID compression flag by [尚嘉宣](https://github.com/shangjiaxuan)
+* PS4 Swizzling support by [TGEnigma](https://github.com/TGEnigma), with fixes by CaptainSwag101 (jpmac26)
