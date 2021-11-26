@@ -1,3 +1,5 @@
+Changes have been made to make Scarlet compatible with DRAT (https://github.com/Liquid-S/Danganronpa-Another-Tool)
+
 Scarlet
 =======
 __Scarlet__ and its related libraries are aiming to provide functionality to convert, export and import various types of game data. They are written in C# and based on the .NET Framework.

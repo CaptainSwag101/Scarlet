@@ -8,11 +8,10 @@ using System.Drawing;
 using Scarlet.Drawing;
 using Scarlet.IO;
 
-
 namespace Scarlet.IO.ImageFormats
 {
-    [MagicNumber("SHTXFS", 0x00)]
-    public class SHTXFS : ImageFormat
+    [MagicNumber("SHTXFs", 0x00)]
+    public class SHTXFs : ImageFormat
     {
         public string Tag { get; private set; }
         public ushort Width { get; private set; }

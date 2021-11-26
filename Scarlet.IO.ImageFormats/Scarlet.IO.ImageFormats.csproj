@@ -66,7 +66,10 @@
     <Compile Include="PSSG.cs" />
     <Compile Include="RTEX.cs" />
     <Compile Include="SHTX.cs" />
+    <Compile Include="SHTXFF.cs" />
+    <Compile Include="SHTXFf_min.cs" />
     <Compile Include="SHTXFS.cs" />
+    <Compile Include="SHTXFs_min.cs" />
     <Compile Include="STEX.cs" />
     <Compile Include="TegraXTX.cs" />
     <Compile Include="CapcomTEX.cs" />
