@@ -1,21 +1,19 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio Version 17
+VisualStudioVersion = 17.1.31911.260
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Scarlet", "Scarlet\Scarlet.csproj", "{B1CC2B0E-4226-4AC5-9940-900A8847201A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Scarlet", "Scarlet\Scarlet.csproj", "{B1CC2B0E-4226-4AC5-9940-900A8847201A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ScarletTestApp", "ScarletTestApp\ScarletTestApp.csproj", "{6486F263-E21A-4F8C-9E02-8FF32817B083}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ScarletTestApp", "ScarletTestApp\ScarletTestApp.csproj", "{6486F263-E21A-4F8C-9E02-8FF32817B083}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Scarlet.IO.ImageFormats", "Scarlet.IO.ImageFormats\Scarlet.IO.ImageFormats.csproj", "{4E7B19C8-1983-41FE-98E4-0532137638FC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Scarlet.IO.ImageFormats", "Scarlet.IO.ImageFormats\Scarlet.IO.ImageFormats.csproj", "{4E7B19C8-1983-41FE-98E4-0532137638FC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Scarlet.IO.ContainerFormats", "Scarlet.IO.ContainerFormats\Scarlet.IO.ContainerFormats.csproj", "{E1C46A51-BBCC-48A8-9B3C-D1D0F02128FC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Scarlet.IO.ContainerFormats", "Scarlet.IO.ContainerFormats\Scarlet.IO.ContainerFormats.csproj", "{E1C46A51-BBCC-48A8-9B3C-D1D0F02128FC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Scarlet.IO.CompressionFormats", "Scarlet.IO.CompressionFormats\Scarlet.IO.CompressionFormats.csproj", "{9D6AF554-4256-4FF5-B2EF-D224C5326F19}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Scarlet.IO.CompressionFormats", "Scarlet.IO.CompressionFormats\Scarlet.IO.CompressionFormats.csproj", "{9D6AF554-4256-4FF5-B2EF-D224C5326F19}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ScarletWinTest", "ScarletWinTest\ScarletWinTest.csproj", "{02ABAFE3-22DC-4ABB-ACF2-E5DD804D3B87}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ScarletUnitTests", "ScarletUnitTests\ScarletUnitTests.csproj", "{B4202DFC-7F9D-4226-880B-5E0C8F4DE682}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ScarletWinTest", "ScarletWinTest\ScarletWinTest.csproj", "{02ABAFE3-22DC-4ABB-ACF2-E5DD804D3B87}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -47,12 +45,11 @@ Global
 		{02ABAFE3-22DC-4ABB-ACF2-E5DD804D3B87}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{02ABAFE3-22DC-4ABB-ACF2-E5DD804D3B87}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{02ABAFE3-22DC-4ABB-ACF2-E5DD804D3B87}.Release|Any CPU.Build.0 = Release|Any CPU
-		{B4202DFC-7F9D-4226-880B-5E0C8F4DE682}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{B4202DFC-7F9D-4226-880B-5E0C8F4DE682}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{B4202DFC-7F9D-4226-880B-5E0C8F4DE682}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{B4202DFC-7F9D-4226-880B-5E0C8F4DE682}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {AB104285-A877-4B33-A156-5440B61CAF60}
 	EndGlobalSection
 EndGlobal
