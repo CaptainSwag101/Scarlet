@@ -403,6 +403,11 @@ namespace Scarlet.Drawing
         PixelOrderingSwizzledSwitch = ((ulong)1 << 45),
 
         /// <summary>
+        /// Format has pixels in swizzled order, PS4-style
+        /// </summary>
+        PixelOrderingSwizzledPS4 = ((ulong)1 << 46),
+
+        /// <summary>
         /// Mask for extracting pixel ordering value
         /// </summary>
         MaskPixelOrdering = ((((ulong)1 << 8) - 1) << 41), /* 0001FE0000000000 */

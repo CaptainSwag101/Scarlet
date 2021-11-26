@@ -1231,6 +1231,7 @@ namespace Scarlet.Drawing
                 case PixelDataFormat.PixelOrderingLinear: pixelOrderingFunc = (int x, int y, int w, int h, PixelDataFormat pf, out int tx, out int ty) => { tx = x; ty = y; }; break;
                 case PixelDataFormat.PixelOrderingTiled: pixelOrderingFunc = new PixelOrderingDelegate(GetPixelCoordinatesTiled); break;
                 case PixelDataFormat.PixelOrderingTiled3DS: pixelOrderingFunc = new PixelOrderingDelegate(GetPixelCoordinates3DS); break;
+                case PixelDataFormat.PixelOrderingSwizzledPS4: pixelOrderingFunc = new PixelOrderingDelegate(GetPixelCoordinatesSwizzledPS4); break;
                 case PixelDataFormat.PixelOrderingSwizzledVita: pixelOrderingFunc = new PixelOrderingDelegate(GetPixelCoordinatesSwizzledVita); break;
                 case PixelDataFormat.PixelOrderingSwizzledPSP: pixelOrderingFunc = new PixelOrderingDelegate(GetPixelCoordinatesPSP); break;
                 case PixelDataFormat.PixelOrderingSwizzledSwitch: throw new Exception("Switch swizzle is unimplemented; check Tegra X1 TRM for Block Linear?");
@@ -1321,7 +1322,7 @@ namespace Scarlet.Drawing
         // Unswizzle logic by @FireyFly
         // http://xen.firefly.nu/up/rearrange.c.html
 
-        private static int Compact1By1(int x)
+        private static int Compact1By1Vita(int x)
         {
             x &= 0x55555555;                    // x = -f-e -d-c -b-a -9-8 -7-6 -5-4 -3-2 -1-0
             x = (x ^ (x >> 1)) & 0x33333333;    // x = --fe --dc --ba --98 --76 --54 --32 --10
@@ -1331,14 +1332,14 @@ namespace Scarlet.Drawing
             return x;
         }
 
-        private static int DecodeMorton2X(int code)
+        private static int DecodeMorton2XVita(int code)
         {
-            return Compact1By1(code >> 0);
+            return Compact1By1Vita(code >> 0);
         }
 
-        private static int DecodeMorton2Y(int code)
+        private static int DecodeMorton2YVita(int code)
         {
-            return Compact1By1(code >> 1);
+            return Compact1By1Vita(code >> 1);
         }
 
         private static void GetPixelCoordinatesSwizzledVita(int origX, int origY, int width, int height, PixelDataFormat inputPixelFormat, out int transformedX, out int transformedY)
@@ -1356,8 +1357,8 @@ namespace Scarlet.Drawing
             {
                 // XXXyxyxyx → XXXxxxyyy
                 int j = i >> (2 * k) << (2 * k)
-                    | (DecodeMorton2Y(i) & (min - 1)) << k
-                    | (DecodeMorton2X(i) & (min - 1)) << 0;
+                    | (DecodeMorton2YVita(i) & (min - 1)) << k
+                    | (DecodeMorton2XVita(i) & (min - 1)) << 0;
                 transformedX = j / height;
                 transformedY = j % height;
             }
@@ -1365,8 +1366,59 @@ namespace Scarlet.Drawing
             {
                 // YYYyxyxyx → YYYyyyxxx
                 int j = i >> (2 * k) << (2 * k)
-                    | (DecodeMorton2X(i) & (min - 1)) << k
-                    | (DecodeMorton2Y(i) & (min - 1)) << 0;
+                    | (DecodeMorton2XVita(i) & (min - 1)) << k
+                    | (DecodeMorton2YVita(i) & (min - 1)) << 0;
+                transformedX = j % width;
+                transformedY = j / width;
+            }
+        }
+
+        private static int Compact1By1PS4(int x)
+        {
+            x &= 0x55555555;                    // x = -f-e -d-c -b-a -9-8 -7-6 -5-4 -3-2 -1-0
+            x = (x ^ (x >> 1)) & 0x33333333;    // x = --fe --dc --ba --98 --76 --54 --32 --10
+            x = (x ^ (x >> 2)) & 0x0f0f0f0f;    // x = ---- fedc ---- ba98 ---- 7654 ---- 3210
+            x = (x ^ (x >> 4)) & 0x00ff00ff;    // x = ---- ---- fedc ba98 ---- ---- 7654 3210
+            x = (x ^ (x >> 8)) & 0x0000ffff;    // x = ---- ---- ---- ---- fedc ba98 7654 3210
+            return x;
+        }
+
+        private static int DecodeMorton2XPS4(int code)
+        {
+            return Compact1By1PS4(code >> 0);
+        }
+
+        private static int DecodeMorton2YPS4(int code)
+        {
+            return Compact1By1PS4(code >> 1);
+        }
+
+        private static void GetPixelCoordinatesSwizzledPS4(int origX, int origY, int width, int height, PixelDataFormat inputPixelFormat, out int transformedX, out int transformedY)
+        {
+            // TODO: verify this is even sensible
+            if (width == 0) width = 16;
+            if (height == 0) height = 16;
+
+            int i = (origY * width) + origX;
+
+            int min = width < height ? width : height;
+            int k = (int)Math.Log(min, 2);
+
+            if (height < width)
+            {
+                // XXXyxyxyx → XXXxxxyyy
+                int j = i >> (8 * k) << (8 * k)
+                    | (DecodeMorton2YPS4(i) & (min - 1)) << k
+                    | (DecodeMorton2XPS4(i) & (min - 1)) << 0;
+                transformedX = j / height;
+                transformedY = j % height;
+            }
+            else
+            {
+                // YYYyxyxyx → YYYyyyxxx
+                int j = i >> (8 * k) << (8 * k)
+                    | (DecodeMorton2XPS4(i) & (min - 1)) << k
+                    | (DecodeMorton2YPS4(i) & (min - 1)) << 0;
                 transformedX = j % width;
                 transformedY = j / width;
             }
