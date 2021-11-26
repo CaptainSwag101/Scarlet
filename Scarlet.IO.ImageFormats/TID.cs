@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -100,6 +100,10 @@ namespace Scarlet.IO.ImageFormats
         public byte[] PixelData { get; private set; }
         public byte[] PaletteData { get; private set; }
 
+        private enum compression_type {none, DXT1, DXT3, DXT5 }
+
+        compression_type type;
+
         ImageBinary imageBinary;
 
         protected override void OnOpen(EndianBinaryReader reader)
@@ -125,6 +129,8 @@ namespace Scarlet.IO.ImageFormats
             Unknown0x5C = reader.ReadUInt32();
             Unknown0x60 = reader.ReadUInt32();
             CompressionFourCC = Encoding.ASCII.GetString(reader.ReadBytes(4)).TrimEnd('\0');
+
+
             Unknown0x68 = reader.ReadUInt32();
             Unknown0x6C = reader.ReadUInt32();
             Unknown0x70 = reader.ReadUInt32();
@@ -155,55 +161,47 @@ namespace Scarlet.IO.ImageFormats
 
             PixelDataFormat pixelFormat, paletteFormat = PixelDataFormat.Undefined;
 
-            if (pixelCompression == TidFormatCompressionFlag.Compressed)
+            switch (CompressionFourCC)
             {
-                switch (CompressionFourCC)
-                {
-                    case "DXT1": pixelFormat = PixelDataFormat.FormatDXT1Rgba; break;
-                    case "DXT3": pixelFormat = PixelDataFormat.FormatDXT3; break;
-                    case "DXT5": pixelFormat = PixelDataFormat.FormatDXT5; break;
-                    default: throw new Exception(string.Format("Unimplemented TID compression format '{0}'", CompressionFourCC));
-                }
-            }
-            else if (pixelCompression == TidFormatCompressionFlag.NotCompressed)
-            {
-                if (PaletteDataSize != 0)
-                {
-                    if (pixelChannelOrder == TidFormatChannelOrder.Rgba)
-                        paletteFormat = PixelDataFormat.FormatRgba8888;
-                    else if (pixelChannelOrder == TidFormatChannelOrder.Argb)
-                        paletteFormat = PixelDataFormat.FormatArgb8888;
-                    else
-                        throw new Exception("Invalid TID channel order; should not be reached?!");
-
-                    if (BitsPerPixel == 8)
-                        pixelFormat = PixelDataFormat.FormatIndexed8;
-                    else
-                        throw new Exception("Invalid or unsupported TID bits per pixel in indexed mode");
-                }
-                else
-                {
-                    if (BitsPerPixel == 32)
+                //Little endian
+                case "DXT1": pixelFormat = PixelDataFormat.FormatDXT1Rgba; break;
+                case "DXT3": pixelFormat = PixelDataFormat.FormatDXT3; break;
+                case "DXT5": pixelFormat = PixelDataFormat.FormatDXT5; break;
+                case "":
+                    if (PaletteDataSize != 0)
                     {
                         if (pixelChannelOrder == TidFormatChannelOrder.Rgba)
-                            pixelFormat = PixelDataFormat.FormatRgba8888;
+                            paletteFormat = PixelDataFormat.FormatRgba8888;
                         else if (pixelChannelOrder == TidFormatChannelOrder.Argb)
-                            pixelFormat = PixelDataFormat.FormatArgb8888;
+                            paletteFormat = PixelDataFormat.FormatArgb8888;
                         else
                             throw new Exception("Invalid TID channel order; should not be reached?!");
+
+                        if (BitsPerPixel == 8)
+                            pixelFormat = PixelDataFormat.FormatIndexed8;
+                        else
+                            throw new Exception("Invalid or unsupported TID bits per pixel in indexed mode");
                     }
                     else
-                        throw new Exception("Invalid or unsupported TID bits per pixel in non-indexed mode");
-                }
+                    {
+                        if (BitsPerPixel == 32)
+                        {
+                            if (pixelChannelOrder == TidFormatChannelOrder.Rgba)
+                                pixelFormat = PixelDataFormat.FormatRgba8888;
+                            else if (pixelChannelOrder == TidFormatChannelOrder.Argb)
+                                pixelFormat = PixelDataFormat.FormatArgb8888;
+                            else
+                                throw new Exception("Invalid TID channel order; should not be reached?!");
+                        }
+                        else
+                            throw new Exception("Invalid or unsupported TID bits per pixel in non-indexed mode");
+                    }
+                    break;
+                default: throw new Exception(string.Format("Unimplemented TID compression format '{0}'", CompressionFourCC));
             }
-            else
-                throw new Exception("Invalid TID compression flag; should not be reached?!");
-
             // TODO: verify if [Compressed == Swizzled] is correct, or if swizzling depends on other factors
-
             if (pixelCompression == TidFormatCompressionFlag.Compressed)
                 pixelFormat |= PixelDataFormat.PixelOrderingSwizzledVita;
-
             imageBinary = new ImageBinary();
             imageBinary.Width = (int)Width;
             imageBinary.Height = (int)Height;
