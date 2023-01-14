@@ -10,8 +10,8 @@ namespace Scarlet
         public static T Clamp<T>(this T val, T min, T max) where T : IComparable<T>
         {
             if (val.CompareTo(min) < 0) return min;
-            else if (val.CompareTo(max) > 0) return max;
-            else return val;
+            if (val.CompareTo(max) > 0) return max;
+            return val;
         }
 
         /* http://stackoverflow.com/a/23177585 */
@@ -22,14 +22,14 @@ namespace Scarlet
         }
 
         /* http://stackoverflow.com/a/18375526 */
-        public static bool InheritsFrom(this Type type, Type baseType)
+        public static bool InheritsFrom(this Type? type, Type? baseType)
         {
-            if (type == null) return false;
-            if (baseType == null) return type.IsInterface;
+            if (type is null) return false;
+            if (baseType is null) return type.IsInterface;
             if (baseType.IsInterface) return type.GetInterfaces().Contains(baseType);
 
             var currentType = type;
-            while (currentType != null)
+            while (currentType is not null)
             {
                 if (currentType.BaseType == baseType) return true;
                 currentType = currentType.BaseType;
