@@ -19,96 +19,53 @@ namespace Scarlet.Drawing
     /// </summary>
     public class ImageBinary
     {
-        int virtualWidth, virtualHeight, physicalWidth, physicalHeight;
-
-        PixelDataFormat inputPixelFormat, inputPaletteFormat;
-        Endian inputEndianness;
-        List<byte[]> inputPixelData;
-        List<byte[]> inputPaletteData;
-
-        PixelDataFormat outputFormat;
-        Endian outputEndianness;
+        private List<byte[]> _inputPixelData;
+        private List<byte[]> _inputPaletteData;
 
         /// <summary>
         /// Get or set width of the input image
         /// </summary>
-        public int Width
-        {
-            get { return virtualWidth; }
-            set { virtualWidth = value; }
-        }
+        public int Width { get; set; }
 
         /// <summary>
         /// Get or set height of the input image
         /// </summary>
-        public int Height
-        {
-            get { return virtualHeight; }
-            set { virtualHeight = value; }
-        }
+        public int Height { get; set; }
 
         /// <summary>
         /// Get or set physical width of the input image
         /// </summary>
-        public int PhysicalWidth
-        {
-            get { return physicalWidth; }
-            set { physicalWidth = value; }
-        }
+        public int PhysicalWidth { get; set; }
 
         /// <summary>
         /// Get or set physical height of the input image
         /// </summary>
-        public int PhysicalHeight
-        {
-            get { return physicalHeight; }
-            set { physicalHeight = value; }
-        }
+        public int PhysicalHeight { get; set; }
 
         /// <summary>
         /// Get or set format of the input pixel data
         /// </summary>
-        public PixelDataFormat InputPixelFormat
-        {
-            get { return inputPixelFormat; }
-            set { inputPixelFormat = value; }
-        }
+        public PixelDataFormat InputPixelFormat { get; set; }
 
         /// <summary>
         /// Get or set format of the input palette data
         /// </summary>
-        public PixelDataFormat InputPaletteFormat
-        {
-            get { return inputPaletteFormat; }
-            set { inputPaletteFormat = value; }
-        }
+        public PixelDataFormat InputPaletteFormat { get; set; }
 
         /// <summary>
         /// Get or set endianness of the input pixel data
         /// </summary>
-        public Endian InputEndianness
-        {
-            get { return inputEndianness; }
-            set { inputEndianness = value; }
-        }
+        public Endian InputEndianness { get; set; }
 
         /// <summary>
         /// Get or set format of the output pixel data
         /// </summary>
-        public PixelDataFormat OutputFormat
-        {
-            get { return outputFormat; }
-            set { outputFormat = value; }
-        }
+        public PixelDataFormat OutputFormat { get; set; }
 
         /// <summary>
         /// Get or set endianness of the output pixel data
         /// </summary>
-        public Endian OutputEndianness
-        {
-            get { return outputEndianness; }
-            set { outputEndianness = value; }
-        }
+        public Endian OutputEndianness { get; set; }
 
         /// <summary>
         /// Creates a new <see cref="ImageBinary"/> instance, using default values
@@ -315,7 +272,7 @@ namespace Scarlet.Drawing
             InitializeInstance(width: width, height: height, inputPixelFormat: inputPixelFormat, inputEndianness: inputEndianness, outputFormat: outputFormat, outputEndianness: outputEndianness, inputPixelData: inputPixelData);
         }
 
-        private void InitializeInstance(int width = 0, int height = 0, PixelDataFormat inputPixelFormat = PixelDataFormat.Undefined, Endian inputEndianness = EndianBinaryReader.NativeEndianness, PixelDataFormat outputFormat = PixelDataFormat.FormatArgb8888, Endian outputEndianness = EndianBinaryReader.NativeEndianness, byte[] inputPixelData = null)
+        private void InitializeInstance(int width = 0, int height = 0, PixelDataFormat inputPixelFormat = PixelDataFormat.Undefined, Endian inputEndianness = EndianBinaryReader.NativeEndianness, PixelDataFormat outputFormat = PixelDataFormat.FormatArgb8888, Endian outputEndianness = EndianBinaryReader.NativeEndianness, byte[]? inputPixelData = null)
         {
             Width = width;
             Height = height;
@@ -329,11 +286,11 @@ namespace Scarlet.Drawing
             OutputFormat = outputFormat;
             OutputEndianness = outputEndianness;
 
-            this.inputPixelData = new List<byte[]>();
-            if (inputPixelData != null)
-                this.inputPixelData.Add(inputPixelData);
+            this._inputPixelData = new List<byte[]>();
+            if (inputPixelData is not null)
+                this._inputPixelData.Add(inputPixelData);
 
-            this.inputPaletteData = new List<byte[]>();
+            _inputPaletteData = new List<byte[]>();
         }
 
         /// <summary>
@@ -346,16 +303,16 @@ namespace Scarlet.Drawing
 
             byte[] pixelData;
 
-            if ((inputPixelFormat & PixelDataFormat.MaskChannels) != PixelDataFormat.ChannelsIndexed)
+            if ((InputPixelFormat & PixelDataFormat.MaskChannels) != PixelDataFormat.ChannelsIndexed)
             {
-                pixelData = ConvertPixelDataToArgb8888(inputPixelData[imageIndex], inputPixelFormat);
-                pixelData = ApplyFilterToArgb8888(physicalWidth, physicalHeight, outputFormat, pixelData);
+                pixelData = ConvertPixelDataToArgb8888(_inputPixelData[imageIndex], InputPixelFormat);
+                pixelData = ApplyFilterToArgb8888(PhysicalWidth, PhysicalHeight, OutputFormat, pixelData);
 
-                pixelData = ConvertArgb8888ToOutputFormat(pixelData, outputFormat, outputEndianness);
+                pixelData = ConvertArgb8888ToOutputFormat(pixelData, OutputFormat, OutputEndianness);
             }
             else
             {
-                pixelData = ReadPixelDataIndexed(inputPixelData[imageIndex], inputPixelFormat);
+                pixelData = ReadPixelDataIndexed(_inputPixelData[imageIndex], InputPixelFormat);
             }
 
             return pixelData;
@@ -367,7 +324,7 @@ namespace Scarlet.Drawing
         /// <param name="paletteData"></param>
         public void AddInputPalette(byte[] paletteData)
         {
-            inputPaletteData.Add(paletteData);
+            _inputPaletteData.Add(paletteData);
         }
 
         /// <summary>
@@ -376,7 +333,7 @@ namespace Scarlet.Drawing
         /// <param name="pixelData"></param>
         public void AddInputPixels(byte[] pixelData)
         {
-            inputPixelData.Add(pixelData);
+            _inputPixelData.Add(pixelData);
         }
 
         /// <summary>
@@ -386,8 +343,8 @@ namespace Scarlet.Drawing
         /// <returns>Byte array with palette data</returns>
         public byte[] GetInputPalette(int paletteIndex)
         {
-            if (paletteIndex < 0 || paletteIndex >= inputPaletteData.Count) throw new IndexOutOfRangeException("Invalid palette index");
-            return inputPaletteData[paletteIndex];
+            if (paletteIndex < 0 || paletteIndex >= _inputPaletteData.Count) throw new IndexOutOfRangeException("Invalid palette index");
+            return _inputPaletteData[paletteIndex];
         }
 
         /// <summary>
@@ -397,8 +354,8 @@ namespace Scarlet.Drawing
         /// <returns>Byte array with pixel data</returns>
         public byte[] GetInputPixels(int imageIndex)
         {
-            if (imageIndex < 0 || imageIndex >= inputPixelData.Count) throw new IndexOutOfRangeException("Invalid image index");
-            return inputPixelData[imageIndex];
+            if (imageIndex < 0 || imageIndex >= _inputPixelData.Count) throw new IndexOutOfRangeException("Invalid image index");
+            return _inputPixelData[imageIndex];
         }
 
         /// <summary>
@@ -412,13 +369,13 @@ namespace Scarlet.Drawing
 
             Color[] palette;
 
-            if ((inputPixelFormat & PixelDataFormat.MaskChannels) != PixelDataFormat.ChannelsIndexed)
+            if ((InputPixelFormat & PixelDataFormat.MaskChannels) != PixelDataFormat.ChannelsIndexed)
             {
                 throw new Exception("Cannot get palette data from non-indexed image");
             }
             else
             {
-                palette = ReadPaletteData(GetInputPalette(paletteIndex), inputPixelFormat, inputPaletteFormat);
+                palette = ReadPaletteData(GetInputPalette(paletteIndex), InputPixelFormat, InputPaletteFormat);
             }
 
             return palette;
@@ -445,7 +402,7 @@ namespace Scarlet.Drawing
 
             PixelFormat imagePixelFormat;
 
-            bool isIndexed = ((inputPixelFormat & PixelDataFormat.MaskChannels) == PixelDataFormat.ChannelsIndexed);
+            bool isIndexed = ((InputPixelFormat & PixelDataFormat.MaskChannels) == PixelDataFormat.ChannelsIndexed);
 
             byte[] inputPixels = GetInputPixels(imageIndex);
 
@@ -455,17 +412,17 @@ namespace Scarlet.Drawing
             if (!isIndexed)
             {
                 imagePixelFormat = PixelFormat.Format32bppArgb;
-                pixelData = ConvertPixelDataToArgb8888(inputPixels, inputPixelFormat);
-                pixelData = ApplyFilterToArgb8888(physicalWidth, physicalHeight, outputFormat, pixelData);
+                pixelData = ConvertPixelDataToArgb8888(inputPixels, InputPixelFormat);
+                pixelData = ApplyFilterToArgb8888(PhysicalWidth, PhysicalHeight, OutputFormat, pixelData);
             }
             else
             {
-                imagePixelFormat = ((inputPixelFormat & PixelDataFormat.MaskBpp) == PixelDataFormat.Bpp4 ? PixelFormat.Format4bppIndexed : PixelFormat.Format8bppIndexed);
-                pixelData = ReadPixelDataIndexed(inputPixels, inputPixelFormat);
-                palette = ReadPaletteData(GetInputPalette(paletteIndex), inputPixelFormat, inputPaletteFormat);
+                imagePixelFormat = ((InputPixelFormat & PixelDataFormat.MaskBpp) == PixelDataFormat.Bpp4 ? PixelFormat.Format4bppIndexed : PixelFormat.Format8bppIndexed);
+                pixelData = ReadPixelDataIndexed(inputPixels, InputPixelFormat);
+                palette = ReadPaletteData(GetInputPalette(paletteIndex), InputPixelFormat, InputPaletteFormat);
             }
 
-            Bitmap image = new Bitmap(physicalWidth, physicalHeight, imagePixelFormat);
+            Bitmap image = new Bitmap(PhysicalWidth, PhysicalHeight, imagePixelFormat);
             BitmapData bmpData = image.LockBits(new Rectangle(0, 0, image.Width, image.Height), ImageLockMode.ReadWrite, image.PixelFormat);
 
             byte[] pixelsForBmp = new byte[bmpData.Height * bmpData.Stride];
@@ -475,12 +432,12 @@ namespace Scarlet.Drawing
 
             int lineSize, copySize;
 
-            if ((bmpData.Width % 8) == 0 || (inputPixelFormat & PixelDataFormat.MaskSpecial) != PixelDataFormat.Undefined)
+            if ((bmpData.Width % 8) == 0 || (InputPixelFormat & PixelDataFormat.MaskSpecial) != PixelDataFormat.Undefined)
                 lineSize = (bmpData.Width / (bitsPerPixel < 8 ? 2 : 1)) * (bitsPerPixel < 8 ? 1 : bitsPerPixel / 8);
             else
                 lineSize = (inputPixels.Length / bmpData.Height);
 
-            if (isIndexed && (inputPixelFormat & PixelDataFormat.MaskBpp) == PixelDataFormat.Bpp4)
+            if (isIndexed && (InputPixelFormat & PixelDataFormat.MaskBpp) == PixelDataFormat.Bpp4)
                 copySize = bmpData.Width / 2;
             else
                 copySize = (bmpData.Width / (bitsPerPixel < 8 ? 2 : 1)) * (bitsPerPixel < 8 ? 1 : bitsPerPixel / 8);
@@ -503,7 +460,7 @@ namespace Scarlet.Drawing
             Marshal.Copy(pixelsForBmp, 0, bmpData.Scan0, pixelsForBmp.Length);
             image.UnlockBits(bmpData);
 
-            return image.Clone(new Rectangle(0, 0, virtualWidth, virtualHeight), image.PixelFormat);
+            return image.Clone(new Rectangle(0, 0, Width, Height), image.PixelFormat);
         }
 
         private bool IsValidPixelDataFormat(PixelDataFormat fmt)
@@ -524,24 +481,24 @@ namespace Scarlet.Drawing
 
         private void ValidateImageProperties()
         {
-            if (virtualWidth <= 0 || virtualWidth >= 16384) throw new Exception("Invalid virtual width");
-            if (virtualHeight <= 0 || virtualHeight >= 16384) throw new Exception("Invalid virtual height");
+            if (Width <= 0 || Width >= 16384) throw new Exception("Invalid virtual width");
+            if (Height <= 0 || Height >= 16384) throw new Exception("Invalid virtual height");
 
-            if (physicalWidth <= 0 || physicalWidth >= 16384) physicalWidth = virtualWidth;
-            if (physicalHeight <= 0 || physicalHeight >= 16384) physicalHeight = virtualHeight;
+            if (PhysicalWidth <= 0 || PhysicalWidth >= 16384) PhysicalWidth = Width;
+            if (PhysicalHeight <= 0 || PhysicalHeight >= 16384) PhysicalHeight = Height;
 
-            if (!IsValidPixelDataFormat(inputPixelFormat)) throw new Exception("Invalid input format");
-            if ((inputPixelFormat & PixelDataFormat.MaskSpecial) == PixelDataFormat.Undefined && !Constants.RealBitsPerPixel.ContainsKey(inputPixelFormat & PixelDataFormat.MaskBpp)) throw new Exception("Invalid input bits per pixel");
-            if (!inputEndianness.IsValid()) throw new Exception("Invalid input endianness");
+            if (!IsValidPixelDataFormat(InputPixelFormat)) throw new Exception("Invalid input format");
+            if ((InputPixelFormat & PixelDataFormat.MaskSpecial) == PixelDataFormat.Undefined && !Constants.RealBitsPerPixel.ContainsKey(InputPixelFormat & PixelDataFormat.MaskBpp)) throw new Exception("Invalid input bits per pixel");
+            if (!InputEndianness.IsValid()) throw new Exception("Invalid input endianness");
 
-            if (!IsValidPixelDataFormat(outputFormat)) throw new Exception("Invalid output format");
-            if ((outputFormat & PixelDataFormat.MaskSpecial) == PixelDataFormat.Undefined && !Constants.RealBitsPerPixel.ContainsKey(outputFormat & PixelDataFormat.MaskBpp)) throw new Exception("Invalid output bits per pixel");
-            if (!outputEndianness.IsValid()) throw new Exception("Invalid output endianness");
+            if (!IsValidPixelDataFormat(OutputFormat)) throw new Exception("Invalid output format");
+            if ((OutputFormat & PixelDataFormat.MaskSpecial) == PixelDataFormat.Undefined && !Constants.RealBitsPerPixel.ContainsKey(OutputFormat & PixelDataFormat.MaskBpp)) throw new Exception("Invalid output bits per pixel");
+            if (!OutputEndianness.IsValid()) throw new Exception("Invalid output endianness");
         }
 
         private byte[] ReadPixelDataIndexed(byte[] inputData, PixelDataFormat inputPixelFormat)
         {
-            using (EndianBinaryReader reader = new EndianBinaryReader(new MemoryStream(inputData), inputEndianness))
+            using (EndianBinaryReader reader = new EndianBinaryReader(new MemoryStream(inputData), InputEndianness))
             {
                 return ReadPixelDataIndexed(reader, inputPixelFormat);
             }
@@ -560,23 +517,23 @@ namespace Scarlet.Drawing
             for (int i = 0, x = 0, y = 0; i < dataIndexed.Length; i++)
             {
                 int tx, ty;
-                pixelOrderingFunc(x, y, physicalWidth, physicalHeight, inputPixelFormat, out tx, out ty);
+                pixelOrderingFunc(x, y, PhysicalWidth, PhysicalHeight, inputPixelFormat, out tx, out ty);
 
                 if (inBpp == PixelDataFormat.Bpp8)
                 {
                     byte index = reader.ReadByte();
-                    if (tx < physicalWidth && ty < physicalHeight)
-                        dataIndexed[((ty * physicalWidth) + tx)] = index;
+                    if (tx < PhysicalWidth && ty < PhysicalHeight)
+                        dataIndexed[((ty * PhysicalWidth) + tx)] = index;
 
                     x++;
-                    if (x == physicalWidth) { x = 0; y++; }
+                    if (x == PhysicalWidth) { x = 0; y++; }
                 }
                 else
                 {
                     byte indices = reader.ReadByte();
-                    if ((tx + 1) < physicalWidth && (ty + 1) < physicalHeight)
+                    if ((tx + 1) < PhysicalWidth && (ty + 1) < PhysicalHeight)
                     {
-                        int pixelOffset = (((ty * physicalWidth) + tx) / 2);
+                        int pixelOffset = (((ty * PhysicalWidth) + tx) / 2);
 
                         /* TODO: verify me! */
                         if (reader.Endianness == Endian.BigEndian)
@@ -585,7 +542,7 @@ namespace Scarlet.Drawing
                             dataIndexed[pixelOffset] = (byte)((indices & 0xF) << 4 | (indices >> 4));
                     }
                     x += 2;
-                    if (x == physicalWidth) { x = 0; y++; }
+                    if (x == PhysicalWidth) { x = 0; y++; }
                 }
             }
 
@@ -594,7 +551,7 @@ namespace Scarlet.Drawing
 
         private Color[] ReadPaletteData(byte[] inputData, PixelDataFormat inputPixelFormat, PixelDataFormat inputPaletteFormat)
         {
-            using (EndianBinaryReader reader = new EndianBinaryReader(new MemoryStream(inputData), inputEndianness))
+            using (EndianBinaryReader reader = new EndianBinaryReader(new MemoryStream(inputData), InputEndianness))
             {
                 return ReadPaletteData(reader, inputPixelFormat, inputPaletteFormat);
             }
@@ -616,7 +573,7 @@ namespace Scarlet.Drawing
 
         private byte[] ConvertPixelDataToArgb8888(byte[] inputData, PixelDataFormat inputPixelFormat)
         {
-            using (EndianBinaryReader reader = new EndianBinaryReader(new MemoryStream(inputData), inputEndianness))
+            using (EndianBinaryReader reader = new EndianBinaryReader(new MemoryStream(inputData), InputEndianness))
             {
                 return ConvertInputDataToArgb8888(reader, inputPixelFormat);
             }
@@ -640,12 +597,12 @@ namespace Scarlet.Drawing
             {
                 case PixelDataFormat.SpecialFormatETC1_3DS:
                 case PixelDataFormat.SpecialFormatETC1A4_3DS:
-                    outputData = ETC1.Decompress(reader, physicalWidth, physicalHeight, specialFormat, reader.BaseStream.Length);
+                    outputData = ETC1.Decompress(reader, PhysicalWidth, PhysicalHeight, specialFormat, reader.BaseStream.Length);
                     break;
 
                 case PixelDataFormat.SpecialFormatPVRT2_Vita:
                 case PixelDataFormat.SpecialFormatPVRT4_Vita:
-                    outputData = PVRTC.Decompress(reader, physicalWidth, physicalHeight, specialFormat, reader.BaseStream.Length);
+                    outputData = PVRTC.Decompress(reader, PhysicalWidth, PhysicalHeight, specialFormat, reader.BaseStream.Length);
                     break;
 
                 case PixelDataFormat.SpecialFormatDXT1:
@@ -658,16 +615,16 @@ namespace Scarlet.Drawing
                 case PixelDataFormat.SpecialFormatRGTC1_Signed:
                 case PixelDataFormat.SpecialFormatRGTC2:
                 case PixelDataFormat.SpecialFormatRGTC2_Signed:
-                    outputData = DXTxRGTC.Decompress(reader, physicalWidth, physicalHeight, inputPixelFormat, reader.BaseStream.Length);
+                    outputData = DXTxRGTC.Decompress(reader, PhysicalWidth, PhysicalHeight, inputPixelFormat, reader.BaseStream.Length);
                     break;
 
                 case PixelDataFormat.SpecialFormatBPTC_Float:
                 case PixelDataFormat.SpecialFormatBPTC_SignedFloat:
-                    outputData = BPTCFloat.Decompress(reader, physicalWidth, physicalHeight, inputPixelFormat, reader.BaseStream.Length);
+                    outputData = BPTCFloat.Decompress(reader, PhysicalWidth, PhysicalHeight, inputPixelFormat, reader.BaseStream.Length);
                     break;
 
                 case PixelDataFormat.SpecialFormatBPTC:
-                    outputData = BPTC.Decompress(reader, physicalWidth, physicalHeight, inputPixelFormat, reader.BaseStream.Length);
+                    outputData = BPTC.Decompress(reader, PhysicalWidth, PhysicalHeight, inputPixelFormat, reader.BaseStream.Length);
                     break;
 
                 default: throw new Exception("Unimplemented special format");
@@ -871,11 +828,11 @@ namespace Scarlet.Drawing
                     }
 
                     int tx, ty;
-                    pixelOrderingFunc(x, y, physicalWidth, physicalHeight, inputPixelFormat, out tx, out ty);
+                    pixelOrderingFunc(x, y, PhysicalWidth, PhysicalHeight, inputPixelFormat, out tx, out ty);
 
-                    if (tx < physicalWidth && ty < physicalHeight)
+                    if (tx < PhysicalWidth && ty < PhysicalHeight)
                     {
-                        int pixelOffset = ((ty * physicalWidth) + tx) * (bitsBpp32 / 8);
+                        int pixelOffset = ((ty * PhysicalWidth) + tx) * (bitsBpp32 / 8);
 
                         if (isNativeLittleEndian)
                         {
@@ -894,7 +851,7 @@ namespace Scarlet.Drawing
                     }
 
                     x++;
-                    if (x == physicalWidth) { x = 0; y++; }
+                    if (x == PhysicalWidth) { x = 0; y++; }
                 }
             }
 
@@ -963,7 +920,7 @@ namespace Scarlet.Drawing
 
         private byte[] ConvertArgb8888ToOutputFormat(byte[] dataArgb8888, PixelDataFormat outputFormat, Endian outputEndian)
         {
-            if (outputFormat == PixelDataFormat.FormatArgb8888 && outputEndianness == EndianBinaryReader.NativeEndianness)
+            if (outputFormat == PixelDataFormat.FormatArgb8888 && OutputEndianness == EndianBinaryReader.NativeEndianness)
             {
                 /* Already ARGB8888 and in native endianness, return as-is */
                 return dataArgb8888;
