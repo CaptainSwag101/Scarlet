@@ -108,7 +108,9 @@ namespace ScarletWinTest
         {
             if (sfdSaveFile.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
+#pragma warning disable CA1416 // Validate platform compatibility
                 pbImage.Image.Save(sfdSaveFile.FileName);
+#pragma warning restore CA1416 // Validate platform compatibility
 
                 tsslStatus.Text = string.Format("File saved as '{0}'", sfdSaveFile.FileName);
             }
