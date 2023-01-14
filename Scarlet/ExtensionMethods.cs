@@ -41,10 +41,10 @@ namespace Scarlet
         /* https://stackoverflow.com/a/25577853 */
         public static string ReadNullTerminatedString(this System.IO.BinaryReader reader)
         {
-            string str = "";
+            StringBuilder str = new();
             char ch;
-            while ((ch = reader.ReadChar()) != 0) str = str + ch;
-            return str;
+            while ((ch = reader.ReadChar()) != 0) str.Append(ch);
+            return str.ToString();
         }
     }
 }
