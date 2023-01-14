@@ -9,6 +9,7 @@ namespace Scarlet.Drawing
     /// <summary>
     /// Specifies components of a pixel data format
     /// </summary>
+    [Flags]
     public enum PixelDataFormat : ulong
     {
         /*
