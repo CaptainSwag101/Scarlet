@@ -19,8 +19,8 @@ namespace Scarlet.Drawing
     /// </summary>
     public class ImageBinary
     {
-        private List<byte[]> _inputPixelData;
-        private List<byte[]> _inputPaletteData;
+        private List<byte[]> _inputPixelData = null!;
+        private List<byte[]> _inputPaletteData = null!;
 
         /// <summary>
         /// Get or set width of the input image
@@ -406,8 +406,8 @@ namespace Scarlet.Drawing
 
             byte[] inputPixels = GetInputPixels(imageIndex);
 
-            byte[] pixelData = null;
-            Color[] palette = null;
+            byte[]? pixelData = null;
+            Color[]? palette = null;
 
             if (!isIndexed)
             {
@@ -1244,7 +1244,7 @@ namespace Scarlet.Drawing
             GetPixelCoordinatesTiledEx(origX, origY, width, height, inputPixelFormat, out transformedX, out transformedY, tileWidth, 8, null);
         }
 
-        private static void GetPixelCoordinatesTiledEx(int origX, int origY, int width, int height, PixelDataFormat inputPixelFormat, out int transformedX, out int transformedY, int tileWidth, int tileHeight, int[] pixelOrdering)
+        private static void GetPixelCoordinatesTiledEx(int origX, int origY, int width, int height, PixelDataFormat inputPixelFormat, out int transformedX, out int transformedY, int tileWidth, int tileHeight, int[]? pixelOrdering)
         {
             // TODO: sometimes eats the last few blocks(?) in the image (ex. BC7 GNFs)
 

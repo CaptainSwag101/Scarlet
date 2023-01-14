@@ -40,7 +40,7 @@ namespace Scarlet.IO
         /// <typeparam name="T">Base type of file (i.e. image, archive)</typeparam>
         /// <param name="filename">Name of file to open</param>
         /// <returns>Instance of file; null if no instance was created</returns>
-        public static T FromFile<T>(string filename) where T : FileFormat
+        public static T? FromFile<T>(string filename) where T : FileFormat
         {
             return FromFile<T>(filename, EndianBinaryReader.NativeEndianness);
         }
@@ -52,7 +52,7 @@ namespace Scarlet.IO
         /// <param name="filename">Name of file to open</param>
         /// <param name="endianness">Endianness of the file data</param>
         /// <returns>Instance of file; null if no instance was created</returns>
-        public static T FromFile<T>(string filename, Endian endianness) where T : FileFormat
+        public static T? FromFile<T>(string filename, Endian endianness) where T : FileFormat
         {
             using (FileStream fileStream = new FileStream(filename, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
             {
@@ -66,7 +66,7 @@ namespace Scarlet.IO
         /// <typeparam name="T">Base type of file (i.e. image, archive)</typeparam>
         /// <param name="fileStream">File stream with data to use</param>
         /// <returns>Instance of file; null if no instance was created</returns>
-        public static T FromFile<T>(FileStream fileStream) where T : FileFormat
+        public static T? FromFile<T>(FileStream fileStream) where T : FileFormat
         {
             return FromFile<T>(fileStream, EndianBinaryReader.NativeEndianness);
         }
@@ -78,7 +78,7 @@ namespace Scarlet.IO
         /// <param name="fileStream">File stream with data to use</param>
         /// <param name="endianness">Endianness of the file data</param>
         /// <returns>Instance of file; null if no instance was created</returns>
-        public static T FromFile<T>(FileStream fileStream, Endian endianness) where T : FileFormat
+        public static T? FromFile<T>(FileStream fileStream, Endian endianness) where T : FileFormat
         {
             // TODO: rework identification system?
 
@@ -90,7 +90,7 @@ namespace Scarlet.IO
                 {
                     foreach (var type in assembly.GetExportedTypes().Where(x => x == typeof(T) || x.InheritsFrom(typeof(T))))
                     {
-                        IdentificationMatch magicMatch = null, patternMatch = null;
+                        IdentificationMatch? magicMatch = null, patternMatch = null;
 
                         var customAttribs = type.GetCustomAttributes(false);
                         bool requireMagicAndPattern = customAttribs.Any(x => x is MagicNumberAttribute) && customAttribs.Any(x => x is FilenamePatternAttribute);
@@ -101,7 +101,7 @@ namespace Scarlet.IO
                             long lastPosition = reader.BaseStream.Position;
                             Endian lastEndianness = reader.Endianness;
 
-                            if ((formatDetectionAttrib as FormatDetectionAttribute).FormatDetectionDelegate.Invoke(reader))
+                            if ((formatDetectionAttrib as FormatDetectionAttribute)!.FormatDetectionDelegate.Invoke(reader))
                                 matchedTypes.Add(new IdentificationMatch(type, uint.MaxValue));
 
                             reader.BaseStream.Position = lastPosition;
@@ -117,7 +117,7 @@ namespace Scarlet.IO
                         if (verifyResult == VerifyResult.VerifyOkay)
                         {
                             uint weight = int.MaxValue;
-                            if (magicNumberAttrib != null) weight += (uint)(magicNumberAttrib as MagicNumberAttribute).MagicNumber.Length;
+                            if (magicNumberAttrib != null) weight += (uint)(magicNumberAttrib as MagicNumberAttribute)!.MagicNumber.Length;
                             magicMatch = new IdentificationMatch(type, weight);
                         }
                         else if (verifyResult == VerifyResult.WrongMagicNumber)
@@ -127,7 +127,7 @@ namespace Scarlet.IO
 
                         foreach (var fnPatternAttrib in type.GetCustomAttributes(typeof(FilenamePatternAttribute), false))
                         {
-                            string pattern = (fnPatternAttrib as FilenamePatternAttribute).Pattern;
+                            string pattern = (fnPatternAttrib as FilenamePatternAttribute)!.Pattern;
                             Regex regEx = new Regex(pattern, RegexOptions.IgnoreCase);
                             if (regEx.IsMatch(Path.GetFileName(fileStream.Name)))
                                 patternMatch = new IdentificationMatch(type, (uint)pattern.Length);
@@ -157,7 +157,7 @@ namespace Scarlet.IO
                 }
             }
 
-            return default(T);
+            return default;
         }
 
         public void Open(string filename)
@@ -200,10 +200,7 @@ namespace Scarlet.IO
 
         protected abstract void OnOpen(EndianBinaryReader reader);
 
-        public virtual string GetFormatDescription()
-        {
-            return null;
-        }
+        public virtual string? GetFormatDescription() => null;
 
         internal static VerifyResult VerifyMagicNumber(EndianBinaryReader reader, Type type)
         {
